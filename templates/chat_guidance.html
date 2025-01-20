@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,7 +37,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: 
+            background-image:
                 linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
                 linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
             background-size: 24px 24px;
@@ -58,7 +59,8 @@
             text-align: center;
         }
 
-        h1, h2 {
+        h1,
+        h2 {
             font-size: 2.5rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -72,7 +74,8 @@
             padding: var(--spacing);
             margin-top: var(--spacing);
             height: 85vh;
-            flex-direction: column;}
+            flex-direction: column;
+        }
 
         #messages {
             flex: 1;
@@ -194,18 +197,21 @@
             right: 0;
             font-size: 0.7rem;
             text-transform: uppercase;
-            background-color: var(--background); 
-            padding: 0 0.25rem; 
-            line-height: 1;  
-            z-index: 1;  
-            border-radius: 2px;  
-            white-space: nowrap; 
+            background-color: var(--background);
+            padding: 0 0.25rem;
+            line-height: 1;
+            z-index: 1;
+            border-radius: 2px;
+            white-space: nowrap;
         }
 
         @keyframes bouncePoint {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: translateX(-5px);
             }
+
             50% {
                 transform: translateX(0);
             }
@@ -223,32 +229,34 @@
         }
 
         .button-container {
-    position: relative;
-    display: inline-block;
+            position: relative;
+            display: inline-block;
         }
 
         @media (max-width: 768px) {
             .message {
-                margin: 2rem 0 0.75rem 0; 
+                margin: 2rem 0 0.75rem 0;
             }
 
             .timestamp {
-                top: -1.5rem; 
+                top: -1.5rem;
             }
 
             .container {
                 padding: calc(var(--spacing) / 2);
             }
 
-            h1, h2 {
+            h1,
+            h2 {
                 font-size: 1.75rem;
             }
 
-            .user, .bot {
+            .user,
+            .bot {
                 margin-left: 0;
                 margin-right: 0;
             }
-    
+
             .button-group {
                 flex-direction: column;
                 width: 100%;
@@ -264,6 +272,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="navigation-line navigation-line-top"></div>
     <div class="navigation-line navigation-line-left"></div>
@@ -271,7 +280,8 @@
     <div class="container">
         <div id="initial-message">
             <h2>Practice Scenarios</h2>
-            <p style="margin-bottom: var(--spacing)">We will review several scenarios that may occur during your companion conversations. Click start when ready.</p>
+            <p style="margin-bottom: var(--spacing)">We will review several scenarios that may occur during your
+                companion conversations. Click start when ready.</p>
             <button id="start-button" onclick="startChat()">Start Practice</button>
         </div>
 
@@ -280,10 +290,7 @@
             <h1>Training Scenarios</h1>
             <div id="messages"></div>
             <div class="input-area">
-                <textarea 
-                    id="message" 
-                    rows="4" 
-                    placeholder="Type your response..."
+                <textarea id="message" rows="4" placeholder="Type your response..."
                     onkeydown="handleKeyPress(event)"></textarea>
                 <div class="keyboard-hint">
                     PRESS ENTER TO SEND, SHIFT+ENTER FOR NEW LINE
@@ -298,172 +305,177 @@
     </div>
 </body>
 
-    <script>
-        const sessionId = Date.now().toString();
-        let firstScenarioDisplayed = false;
-        let currentScenario = '';
+<script>
+    const sessionId = Date.now().toString();
+    let firstScenarioDisplayed = false;
+    let currentScenario = '';
 
-        function handleKeyPress(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
+    function handleKeyPress(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+
+    function getTimeString() {
+        return new Date().toLocaleTimeString('en-US', {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function startChat() {
+        document.getElementById('initial-message').style.display = 'none';
+        document.getElementById('chat-box').style.display = 'flex';
+
+        // Create a container for the button and arrow
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'button-container';
+
+        const arrow = document.createElement('span');
+        arrow.className = 'pointing-arrow';
+        arrow.innerHTML = '→';
+
+        const okButton = document.createElement('button');
+        okButton.id = "ok-button";
+        okButton.innerHTML = "Begin Scenarios";
+        okButton.onclick = showFirstScenario;
+
+        // Append elements
+        buttonContainer.appendChild(arrow);
+        buttonContainer.appendChild(okButton);
+        document.getElementById('messages').appendChild(buttonContainer);
+        document.getElementById('message').focus();
+    }
+
+    function showFirstScenario() {
+        const buttonContainer = document.querySelector('.button-container');
+        if (buttonContainer) {
+            buttonContainer.remove();
         }
 
-        function getTimeString() {
-            return new Date().toLocaleTimeString('en-US', { 
-                hour12: false, 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
+        if (!firstScenarioDisplayed) {
+            sendMessage("start");
+            firstScenarioDisplayed = true;
+            currentScenario = "This is your first time calling your companion...";
         }
+    }
 
-        function startChat() {
-            document.getElementById('initial-message').style.display = 'none';
-            document.getElementById('chat-box').style.display = 'flex';
-    
-            // Create a container for the button and arrow
-            const buttonContainer = document.createElement('div');
-            buttonContainer.className = 'button-container';
-    
-            const arrow = document.createElement('span');
-            arrow.className = 'pointing-arrow';
-            arrow.innerHTML = '→';
-    
-            const okButton = document.createElement('button');
-            okButton.id = "ok-button";
-            okButton.innerHTML = "Begin Scenarios";
-            okButton.onclick = showFirstScenario;
-
-            // Append elements
-            buttonContainer.appendChild(arrow);
-            buttonContainer.appendChild(okButton);
-            document.getElementById('messages').appendChild(buttonContainer);
-            document.getElementById('message').focus();
-        }
-
-        function showFirstScenario() {
-            const buttonContainer = document.querySelector('.button-container');
-            if (buttonContainer) {
-                buttonContainer.remove();
-            } 
-
-            if (!firstScenarioDisplayed) {
-                sendMessage("start");
-                firstScenarioDisplayed = true;
-                currentScenario = "This is your first time calling your companion...";
-            }
-        }
-
-        function appendMessage(content, type) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}`;
-            messageDiv.innerHTML = `
+    function appendMessage(content, type) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+        messageDiv.innerHTML = `
                 ${content}
                 <div class="timestamp">${getTimeString()}</div>
             `;
-            document.getElementById('messages').appendChild(messageDiv);
-            messageDiv.scrollIntoView({ behavior: 'smooth' });
-        }
+        document.getElementById('messages').appendChild(messageDiv);
+        messageDiv.scrollIntoView({ behavior: 'smooth' });
+    }
 
-        async function sendMessage(message = null) {
-    try {
-        if (!message) {
-            message = document.getElementById('message').value.trim();
-            if (!message) return;
-            appendMessage(message, 'user');
-            document.getElementById('message').value = '';
-            document.getElementById('message').focus();
-        }
+    async function sendMessage(message = null) {
+        try {
+            if (!message) {
+                message = document.getElementById('message').value.trim();
+                if (!message) return;
+                appendMessage(message, 'user');
+                document.getElementById('message').value = '';
+                document.getElementById('message').focus();
+            }
 
-        const response = await fetch('/chatbot_guidance', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message, session_id: sessionId })
-        });
+            const response = await fetch('/chatbot_guidance', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message, session_id: sessionId })
+            });
 
-        const data = await response.json();
+            const data = await response.json();
 
-        if (data.feedback) {
-            const feedbackDiv = document.createElement('div');
-            feedbackDiv.className = 'message feedback';
-            feedbackDiv.innerHTML = `
+            if (data.feedback) {
+                const feedbackDiv = document.createElement('div');
+                feedbackDiv.className = 'message feedback';
+                feedbackDiv.innerHTML = `
                 ${data.feedback}
                 <div class="timestamp">${getTimeString()}</div>
             `;
-            document.getElementById('messages').appendChild(feedbackDiv);
-        }
+                document.getElementById('messages').appendChild(feedbackDiv);
+            }
 
-        if (data.next_scenario && !data.next_scenario.includes(currentScenario)) {
-            const scenarioDiv = document.createElement('div');
-            scenarioDiv.className = 'message next-scenario';
-            scenarioDiv.innerHTML = `
+            if (data.next_scenario && !data.next_scenario.includes(currentScenario)) {
+                const scenarioDiv = document.createElement('div');
+                scenarioDiv.className = 'message next-scenario';
+                scenarioDiv.innerHTML = `
                 <strong>Scenario:</strong><br>${data.next_scenario}
                 <div class="timestamp">${getTimeString()}</div>
             `;
-            document.getElementById('messages').appendChild(scenarioDiv);
-            currentScenario = data.next_scenario;
-        }
+                document.getElementById('messages').appendChild(scenarioDiv);
+                currentScenario = data.next_scenario;
+            }
 
-    } catch (error) {
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'message feedback';
-        errorDiv.innerHTML = `
+        } catch (error) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'message feedback';
+            errorDiv.innerHTML = `
             <strong>Error:</strong><br>
             An error occurred. Please try again.
             <div class="timestamp">${getTimeString()}</div>
         `;
-        document.getElementById('messages').appendChild(errorDiv);
-        console.error('Error details:', error);
+            document.getElementById('messages').appendChild(errorDiv);
+            console.error('Error details:', error);
+        }
     }
-}
 
-        function goToMainMenu() {
-            window.location.href = '/';
-        }
+    function goToMainMenu() {
+        window.location.href = '/';
+    }
 
-        async function jumpToNextScenario() {
-            try {
-                const response = await fetch('/next_scenario', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ session_id: sessionId })
-                });
+    function goToTrainingSelection() {
+        window.location.href = '/scenarios_training';
+    }
 
-                const data = await response.json();
-                if (data.next_scenario) {
-                    appendMessage(`<strong>Scenario:</strong><br>${data.next_scenario}`, 'next-scenario');
-                    currentScenario = data.next_scenario;
-                }
+    async function jumpToNextScenario() {
+        try {
+            const response = await fetch('/next_scenario', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id: sessionId })
+            });
 
-            } catch (error) {
-                appendMessage("<strong>Error:</strong><br>Unable to load the next scenario.", 'feedback');
-                console.error('Error details:', error);
+            const data = await response.json();
+            if (data.next_scenario) {
+                appendMessage(`<strong>Scenario:</strong><br>${data.next_scenario}`, 'next-scenario');
+                currentScenario = data.next_scenario;
             }
-        }
 
-        function appendMessage(content, type) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}`;
-            messageDiv.innerHTML = `
+        } catch (error) {
+            appendMessage("<strong>Error:</strong><br>Unable to load the next scenario.", 'feedback');
+            console.error('Error details:', error);
+        }
+    }
+
+    function appendMessage(content, type) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+        messageDiv.innerHTML = `
                 ${content}
                 <div class="timestamp">${getTimeString()}</div>
             `;
-            document.getElementById('messages').appendChild(messageDiv);
-            messageDiv.scrollIntoView({ behavior: 'smooth' });
-        }
+        document.getElementById('messages').appendChild(messageDiv);
+        messageDiv.scrollIntoView({ behavior: 'smooth' });
+    }
 
-        function goToMainMenu() {
-            window.location.href = '/';
-        }
+    function goToMainMenu() {
+        window.location.href = '/';
+    }
 
-        function getTimeString() {
-            return new Date().toLocaleTimeString('en-US', { 
-                hour12: false, 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-        }
-    </script>
+    function getTimeString() {
+        return new Date().toLocaleTimeString('en-US', {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+</script>
 </body>
+
 </html>

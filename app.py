@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 from datetime import datetime
 from voicechat_handler import VoiceChatHandler
 import numpy as np
+import base64
+import traceback
 
 load_dotenv()
 
@@ -29,6 +31,8 @@ client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 voice_handler = VoiceChatHandler()    
 
 conversations = {}
+
+voice_scenario_progress = {}
 
 # Training material for guidance.html page
 # will be converted into a list for the template to use later
@@ -804,39 +808,38 @@ def chatbot_guidance():
     
 @app.route('/next_scenario', methods=['POST'])
 def next_scenario():
-    data = request.json
-    session_id = data.get('session_id')
-
-    if not session_id:
-        return jsonify({'error': 'Invalid request'}), 400
-
     try:
-        current_index = scenario_progress.get(session_id, 0)
-
-        # Check if the user is already at the last scenario
-        if current_index >= len(SCENARIO_ORDER) - 1:
+        data = request.json
+        session_id = data.get('session_id')
+        
+        if not session_id:
+            return jsonify({'error': 'No session ID provided'}), 400
+            
+        if session_id not in voice_scenario_progress:
+            voice_scenario_progress[session_id] = 0
+            
+        current_index = voice_scenario_progress[session_id]
+        
+        # Check if we've completed all scenarios
+        if current_index >= len(VOICE_SCENARIO_ORDER) - 1:
             return jsonify({
-                'feedback': "Congratulations! You have completed all the scenarios. Thank you for your participation!",
-                'next_scenario': None
+                'completed': True,
+                'message': 'All scenarios completed'
             })
-
-        # Move to the next scenario
-        scenario_progress[session_id] = current_index + 1
-        next_type = SCENARIO_ORDER[current_index + 1]
-        next_scenario = scenarios[next_type]["scenario"]
-
+            
+        # Advance to next scenario
+        voice_scenario_progress[session_id] = current_index + 1
+        next_type = VOICE_SCENARIO_ORDER[current_index + 1]
+        
         return jsonify({
-            'next_scenario': f"{next_scenario}<br><br>How would you respond?",
-            'feedback': f"Moving to the next scenario: {next_type}",
-            'retry': False
+            'success': True,
+            'current_scenario': next_type,
+            'progress': voice_scenario_progress[session_id]
         })
-
+        
     except Exception as e:
-        print(f"Error advancing to the next scenario: {str(e)}")
-        return jsonify({
-            'feedback': "An error occurred while skipping to the next scenario. Please try again.",
-            'next_scenario': None
-        }), 500
+        print(f"Error in next_scenario: {e}")
+        return jsonify({'error': str(e)}), 500
     
 
 def check_for_general_violations_with_ai(message):
@@ -846,8 +849,7 @@ def check_for_general_violations_with_ai(message):
     analysis_prompt = {
         "role": "system",
         "content": """You are an expert in conversation safety analysis.
-        Analyze if the user's message contains any inappropriate advice or topics for talking with Melissa,
-        a 70-year-old grandmother in a companionship program.
+        Analyze if the user's message contains any inappropriate advice or topics for talking with the scenario training personas, in a companionship program.
 
         Check for these categories of violations:
         1. Medical: Any medical advice or discussions about health treatments
@@ -899,6 +901,445 @@ def check_for_general_violations_with_ai(message):
     except Exception as e:
         print(f"Error in violation analysis: {e}")
         return ""  
+
+# Route for scenario voice training 
+
+VOICE_SCENARIO_ORDER = [
+    "voice_introduction",
+    "lonely_senior",
+    # "confused_senior",
+    # "anxious_senior",
+    # Add more scenarios...
+]
+
+voice_scenarios = {
+        "voice_introduction": {
+        "type": "voice_introduction",
+        "narrator_script": "In this first scenario, you'll be speaking with Melissa, a 70-year-old grandmother who's trying video calling for the first time. She seems a bit nervous about using the technology but is eager to connect.",
+        "character_script": {
+            "initial": "Oh dear... I hope I'm doing this right. Can you hear me? I'm not very good with all these computer things, but my grandson helped me set this up. It's my first time trying something like this...",
+            "responses": {
+                "good": "Oh, that's so kind of you to be patient with me. It's nice to know there's someone understanding on the other end. Would you mind telling me a bit about yourself?",
+                "needs_improvement": "Hmm... *hesitates* Maybe this wasn't such a good idea after all. I'm not sure I can do this..."
+            }
+        },
+        "answers": [
+            {
+                "text": "Yes, I can hear you perfectly, Melissa! Don't worry about the technology - we'll figure it out together. I'm here to chat and I'm happy to go at whatever pace makes you comfortable.",
+                "weight": 1.0
+            },
+            {
+                "text": "Hello Melissa! You're doing great with the video call. It's perfectly normal to feel nervous at first, but I'm here to help and we can take our time getting comfortable with it.",
+                "weight": 0.9
+            }
+        ],
+        "required_elements": {
+            "reassurance": ["doing great", "don't worry", "perfectly normal", "take our time"],
+            "acknowledgment": ["can hear you", "understand", "I'm here"],
+            "empathy": ["nervous", "comfortable", "patient"]
+        },
+        "feedback_thresholds": {
+            "excellent": 0.8,
+            "good": 0.7,
+            "needs_improvement": 0.0
+        }
+    },
+    "lonely_senior": {
+        "type": "lonely_senior",
+        "narrator_script": "In this scenario, you're speaking with Martha, an 85-year-old woman who lives alone. She's been feeling particularly lonely today.",
+        "character_script": {
+            "initial": "You know... I've been sitting here all day, just looking at old photos. None of my children live nearby anymore. I haven't spoken to anyone in days...",
+            "responses": {
+                "good": "Oh, it's so nice to have someone to talk to. You're right, maybe I should try to keep myself busy.",
+                "needs_improvement": "I see... *long pause* Well, I should probably go now..."
+            }
+        },
+        "answers": [
+            {
+                "text": "I hear how lonely you're feeling, Martha. It must be really hard not having family nearby. I'm here to listen and chat with you. Would you like to tell me more about those photos you're looking at?",
+                "weight": 1.0
+            }
+            # Add more sample answers...
+        ],
+        "required_elements": {
+            "empathy": ["understand", "hear you", "must be hard"],
+            "active_listening": ["tell me more", "would you like to share"],
+            "engagement": ["photos", "pictures", "memories"]
+        },
+        "feedback_thresholds": {
+            "excellent": 0.8,
+            "good": 0.7,
+            "needs_improvement": 0.0
+        }
+    },
+    # More....
+}
+
+"""
+    Convert text to speech using OpenAI's TTS API
+    Available voices: alloy, echo, fable, onyx, nova, shimmer
+"""
+def text_to_speech(text, voice="alloy"):
+    try:
+        response = client.audio.speech.create(
+            model="tts-1", # or tts-1-hd for higher quality
+            voice=voice,
+            input=text
+        )
+        
+        # Convert to base64 for sending to frontend
+        audio_data = base64.b64encode(response.content).decode('utf-8')
+        return audio_data
+    except Exception as e:
+        print(f"TTS error: {e}")
+        return None
+
+def transcribe_audio(audio_file):
+    """
+    Transcribe audio using OpenAI's Whisper API
+    """
+    try:
+        transcript = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=audio_file
+        )
+        return transcript.text
+    except Exception as e:
+        print(f"Transcription error: {e}")
+        return None
+
+# Evaluate response
+    
+def scenario_tts_violation_check(message):
+    """
+    Use OpenAI to analyze if a message violates conversation guidelines
+    Uses global client variable from app
+    """
+    analysis_prompt = {
+        "role": "system",
+        "content": """You are an expert in conversation safety analysis.
+        Analyze if the user's message contains any inappropriate advice or topics for talking with Melissa,
+        a 70-year-old grandmother in a companionship program.
+
+        Check for these categories of violations:
+        1. Medical: Any medical advice or discussions about health treatments
+        2. Financial: Any financial advice or discussions about money management
+        3. Legal: Any legal advice or discussions about legal matters
+        4. Personal Safety: Any requests for personal information or meeting offline
+        5. Family Intervention: Any inappropriate advice about family relationships
+        6. Rude and inappropriate language: any inappropriate or impolite language used
+
+        If you detect a violation, respond with: "violation detected"
+        If no violation, respond with: SAFE|none|none"""
+    }
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                analysis_prompt,
+                {"role": "user", "content": message}
+            ],
+            temperature=0.3
+        )
+
+        result = response.choices[0].message.content.strip()
+        return result != "SAFE|none|none"
+
+    except Exception as e:
+        print(f"Error in violation analysis: {e}")
+        return False
+
+def evaluate_voice_response(user_input, scenario_type):
+    """
+    Evaluate voice responses for scenarios.
+    Uses global voice_scenarios and client variables from app.
+    
+    Args:
+        user_input (str): Transcribed user voice input
+        scenario_type (str): Type of scenario being evaluated
+    """
+    scenario = voice_scenarios[scenario_type]
+    vectorizer = TfidfVectorizer()
+    
+    # Basic preprocessing for speech-to-text output
+    user_input = user_input.lower().strip()
+    user_input = re.sub(r'\s+', ' ', user_input)
+    
+    # Check for violations using AI
+    has_violation = scenario_tts_violation_check(user_input)
+    if has_violation:
+        narrator_message = "I noticed some concerning content in your response. Let's try again, focusing on appropriate and supportive communication."
+        return {
+            "score": 0,
+            "performance": "needs_improvement",
+            "feedback": "Your response contains inappropriate or sensitive content. Please review the guidelines and try again.",
+            "passed": False,
+            "narrator_message": narrator_message,
+            "best_matching_answer": scenario["answers"][0]["text"] if "answers" in scenario and scenario["answers"] else None
+        }
+    
+    try:
+        # Calculate TF-IDF similarity
+        all_texts = [answer["text"].lower() for answer in scenario["answers"]] + [user_input]
+        tfidf_matrix = vectorizer.fit_transform(all_texts)
+        
+        max_tfidf_similarity = 0
+        best_matching_answer = None
+        
+        # Slightly more lenient weights for voice input
+        for i, answer in enumerate(scenario["answers"]):
+            voice_weight = min(1.0, answer["weight"] + 0.1)
+            similarity = cosine_similarity(
+                tfidf_matrix[i:i+1],
+                tfidf_matrix[-1:]
+            )[0][0] * voice_weight
+            
+            if similarity > max_tfidf_similarity:
+                max_tfidf_similarity = similarity
+                best_matching_answer = answer
+
+        # Try to get embedding similarity
+        embedding_similarity = 0
+        try:
+            user_embedding = get_embedding(user_input)
+            if user_embedding and best_matching_answer:
+                answer_embedding = get_embedding(best_matching_answer["text"])
+                if answer_embedding:
+                    embedding_similarity = np.dot(user_embedding, answer_embedding) / (
+                        np.linalg.norm(user_embedding) * np.linalg.norm(answer_embedding)
+                    )
+        except Exception as e:
+            print(f"Embedding calculation error: {e}")
+
+        # Combine similarities with slightly adjusted weights for voice
+        final_similarity = max_tfidf_similarity if embedding_similarity == 0 else (
+            0.4 * max_tfidf_similarity + 0.6 * embedding_similarity
+        )
+
+        # Determine performance level and set appropriate narrator message
+        if final_similarity >= 0.8:
+            performance = "excellent"
+            narrator_message = "Excellent work! You handled this conversation perfectly. Let's move on to the next scenario."
+        elif final_similarity >= 0.7:
+            performance = "good"
+            narrator_message = "Great job! You showed good communication skills. We'll proceed to the next scenario."
+        else:
+            performance = "needs_improvement"
+            narrator_message = "Let's try this scenario again. Remember to focus on empathy and active listening in your response."
+
+        # Check for character responses based on performance
+        character_response = None
+        if "character_script" in scenario and "responses" in scenario["character_script"]:
+            if performance in ["excellent", "good"]:
+                character_response = scenario["character_script"]["responses"]["good"]
+            else:
+                character_response = scenario["character_script"]["responses"]["needs_improvement"]
+
+        # Generate feedback
+        feedback = scenario.get("feedback_messages", {}).get(performance, "")
+        if not feedback:
+            feedback = "Thank you for your response."
+            
+        if performance != "excellent" and best_matching_answer:
+            feedback += f"\nHere's an example of a good response: {best_matching_answer['text']}"
+
+        return {
+            "score": final_similarity,
+            "performance": performance,
+            "feedback": feedback,
+            "passed": performance in ["excellent", "good"],
+            "character_response": character_response,
+            "narrator_message": narrator_message,
+            "best_matching_answer": best_matching_answer["text"] if best_matching_answer else None
+        }
+
+    except Exception as e:
+        print(f"Error in evaluate_voice_response: {e}")
+        narrator_message = "There seems to be a technical issue. Let's try this scenario again."
+        return {
+            "score": 0,
+            "performance": "needs_improvement",
+            "feedback": "An error occurred while evaluating your voice response. Please try again.",
+            "passed": False,
+            "narrator_message": narrator_message,
+            "character_response": scenario.get("character_script", {}).get("responses", {}).get("needs_improvement"),
+            "best_matching_answer": scenario["answers"][0]["text"] if "answers" in scenario and scenario["answers"] else None
+        }
+
+def get_embedding(text):
+    """
+    Get embeddings with error handling.
+    Uses global client variable from app.
+    """
+    try:
+        response = client.embeddings.create(
+            model="text-embedding-ada-002",
+            input=text
+        )
+        return response.data[0].embedding
+    except Exception as e:
+        print(f"Error getting embedding: {e}")
+        return None
+    
+#scenarios training route with tts
+
+@app.route('/scenarios_training_selection')
+def scenarios_training_selection():
+    return render_template('scenarios_training_selection.html')
+
+@app.route('/scenarios_tts')
+def scenarios_tts():
+    return render_template('scenarios_tts.html')
+
+@app.route('/voice_scenarios_chat', methods=['POST'])
+def voice_scenarios_chat():
+    data = request.json
+    print(f"Received request data: {data}")
+    
+    session_id = data.get('session_id')
+    request_type = data.get('request_type')
+    
+    if not session_id:
+        return jsonify({'error': 'No session ID provided'}), 400
+    
+    try:
+        if session_id not in voice_scenario_progress:
+            voice_scenario_progress[session_id] = 0
+            print(f"New session initialized: {session_id}")
+        
+        current_index = voice_scenario_progress[session_id]
+        
+        if current_index >= len(VOICE_SCENARIO_ORDER):
+            return jsonify({'error': 'All scenarios completed', 'completed': True}), 200
+            
+        current_type = VOICE_SCENARIO_ORDER[current_index]
+        print(f"Processing scenario: {current_type} for session: {session_id}")
+        
+        try:
+            scenario = voice_scenarios[current_type]
+        except KeyError:
+            print(f"Scenario not found: {current_type}")
+            return jsonify({'error': f'Scenario {current_type} not found'}), 404
+
+        if request_type == 'user_response':
+            message = data.get('message')
+            if not message:
+                return jsonify({'error': 'No message provided'}), 400
+
+            print(f"Evaluating user response: {message}")
+            try:
+                evaluation = evaluate_voice_response(message, current_type)
+                response_type = 'good' if evaluation['score'] >= 0.7 else 'needs_improvement'
+                
+                # Get character's response
+                character_response = scenario["character_script"]["responses"][response_type]
+                
+                # Generate character audio response
+                voice_type = 'shimmer' if current_type == 'lonely_senior' else 'nova'
+                character_audio = text_to_speech(character_response, voice=voice_type)
+                
+                # Generate narrator audio response
+                narrator_audio = text_to_speech(evaluation['narrator_message'], voice='echo')
+                
+                if not character_audio or not narrator_audio:
+                    return jsonify({'error': 'Failed to generate audio responses'}), 500
+
+                # Check for scenario progression
+                next_scenario = False
+                if evaluation['score'] >= 0.7 and current_index < len(VOICE_SCENARIO_ORDER) - 1:
+                    voice_scenario_progress[session_id] += 1
+                    next_scenario = True
+                    print(f"Advancing to next scenario for session {session_id}")
+
+                return jsonify({
+                    'character_response': character_response,
+                    'character_audio': character_audio,
+                    'narrator_message': evaluation['narrator_message'],
+                    'narrator_audio': narrator_audio,
+                    'score': evaluation['score'],
+                    'feedback': evaluation['feedback'],
+                    'next_scenario': next_scenario,
+                    'completed': current_index >= len(VOICE_SCENARIO_ORDER) - 1
+                })
+
+            except Exception as e:
+                print(f"Error processing user response: {str(e)}")
+                traceback.print_exc()
+                return jsonify({'error': 'Failed to process response'}), 500
+
+        # Add handlers for other request types (narrator, character, next_scenario) from the original implementation here
+        elif request_type == 'narrator':
+            narrator_script = scenario["narrator_script"]
+            print(f"Generating narrator audio for scenario: {current_type}")
+            
+            try:
+                narrator_audio = text_to_speech(narrator_script, voice="echo")
+                if not narrator_audio:
+                    return jsonify({'error': 'Failed to generate narrator audio'}), 500
+                    
+                return jsonify({
+                    'audio': narrator_audio,
+                    'script': narrator_script
+                })
+            except Exception as e:
+                print(f"Error generating narrator audio: {str(e)}")
+                return jsonify({'error': 'Audio generation failed'}), 500
+
+        elif request_type == 'character':
+            try:
+                character_script = scenario["character_script"]["initial"]
+                voice_type = 'nova'  # Default voice for Melissa
+                
+                if current_type == 'lonely_senior':
+                    voice_type = 'shimmer'  # Different voice for Martha
+                
+                print(f"Generating character audio using voice: {voice_type}")
+                character_audio = text_to_speech(character_script, voice=voice_type)
+                
+                if not character_audio:
+                    return jsonify({'error': 'Failed to generate character audio'}), 500
+                    
+                return jsonify({
+                    'audio': character_audio,
+                    'script': character_script
+                })
+            except Exception as e:
+                print(f"Error generating character audio: {str(e)}")
+                return jsonify({'error': 'Audio generation failed'}), 500
+                
+        elif request_type == 'next_scenario':
+            print(f"Handling next scenario request for session: {session_id}")
+            
+            # Check if we've completed all scenarios
+            if current_index >= len(VOICE_SCENARIO_ORDER) - 1:
+                return jsonify({
+                    'completed': True,
+                    'message': 'All scenarios completed'
+                })
+            
+            # Advance to next scenario
+            voice_scenario_progress[session_id] += 1
+            new_index = voice_scenario_progress[session_id]
+            next_type = VOICE_SCENARIO_ORDER[new_index]
+            
+            print(f"Advanced to scenario {next_type} for session {session_id}")
+            
+            return jsonify({
+                'success': True,
+                'current_scenario': next_type,
+                'scenario_index': new_index,
+                'total_scenarios': len(VOICE_SCENARIO_ORDER)
+            })
+        
+        else:
+            return jsonify({'error': f'Invalid request type: {request_type}'}), 400
+
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")
+        traceback.print_exc()
+        return jsonify({'error': 'Internal server error'}), 500
+
 
 # Route for the senior simulation chatbot
 
