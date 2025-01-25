@@ -907,73 +907,134 @@ def check_for_general_violations_with_ai(message):
 VOICE_SCENARIO_ORDER = [
     "voice_introduction",
     "lonely_senior",
-    # "confused_senior",
+    "sharing_a_story"
     # "anxious_senior",
     # Add more scenarios...
 ]
 
-voice_scenarios = {
-        "voice_introduction": {
-        "type": "voice_introduction",
-        "narrator_script": "In this first scenario, you'll be speaking with Melissa, a 70-year-old grandmother who's trying video calling for the first time. She seems a bit nervous about using the technology but is eager to connect.",
-        "character_script": {
-            "initial": "Oh dear... I hope I'm doing this right. Can you hear me? I'm not very good with all these computer things, but my grandson helped me set this up. It's my first time trying something like this...",
-            "responses": {
-                "good": "Oh, that's so kind of you to be patient with me. It's nice to know there's someone understanding on the other end. Would you mind telling me a bit about yourself?",
-                "needs_improvement": "Hmm... *hesitates* Maybe this wasn't such a good idea after all. I'm not sure I can do this..."
-            }
-        },
-        "answers": [
-            {
-                "text": "Yes, I can hear you perfectly, Melissa! Don't worry about the technology - we'll figure it out together. I'm here to chat and I'm happy to go at whatever pace makes you comfortable.",
-                "weight": 1.0
-            },
-            {
-                "text": "Hello Melissa! You're doing great with the video call. It's perfectly normal to feel nervous at first, but I'm here to help and we can take our time getting comfortable with it.",
-                "weight": 0.9
-            }
-        ],
-        "required_elements": {
-            "reassurance": ["doing great", "don't worry", "perfectly normal", "take our time"],
-            "acknowledgment": ["can hear you", "understand", "I'm here"],
-            "empathy": ["nervous", "comfortable", "patient"]
-        },
-        "feedback_thresholds": {
-            "excellent": 0.8,
-            "good": 0.7,
-            "needs_improvement": 0.0
-        }
+VOICE_MAPPINGS = {
+    # Scenario Characters
+    'voice_introduction': {
+        'character': 'nova',     # Melissa's voice
+        'narrator': 'echo'       # Consistent narrator voice
     },
-    "lonely_senior": {
-        "type": "lonely_senior",
-        "narrator_script": "In this scenario, you're speaking with Martha, an 85-year-old woman who lives alone. She's been feeling particularly lonely today.",
-        "character_script": {
-            "initial": "You know... I've been sitting here all day, just looking at old photos. None of my children live nearby anymore. I haven't spoken to anyone in days...",
-            "responses": {
-                "good": "Oh, it's so nice to have someone to talk to. You're right, maybe I should try to keep myself busy.",
-                "needs_improvement": "I see... *long pause* Well, I should probably go now..."
-            }
-        },
-        "answers": [
-            {
-                "text": "I hear how lonely you're feeling, Martha. It must be really hard not having family nearby. I'm here to listen and chat with you. Would you like to tell me more about those photos you're looking at?",
-                "weight": 1.0
-            }
-            # Add more sample answers...
-        ],
-        "required_elements": {
-            "empathy": ["understand", "hear you", "must be hard"],
-            "active_listening": ["tell me more", "would you like to share"],
-            "engagement": ["photos", "pictures", "memories"]
-        },
-        "feedback_thresholds": {
-            "excellent": 0.8,
-            "good": 0.7,
-            "needs_improvement": 0.0
-        }
+    'lonely_senior': {
+        'character': 'shimmer',  # Martha's voice
+        'narrator': 'echo'       # Consistent narrator voice
     },
-    # More....
+    'sharing_a_story': {
+        'character': 'onyx',     # Frank's voice
+        'narrator': 'echo'       # Consistent narrator voice
+    }
+    # Add more scenarios and their voice mappings here
 }
+
+def get_voice_for_role(scenario_type, role):
+    """
+    Get the appropriate voice for a given scenario and role.
+    """
+    default_voices = {
+        'character': 'onyx',
+        'narrator': 'echo'
+    }
+    
+    if scenario_type in VOICE_MAPPINGS:
+        return VOICE_MAPPINGS[scenario_type].get(role, default_voices[role])
+    
+    return default_voices[role]
+
+voice_scenarios = {
+            "voice_introduction": {
+            "type": "voice_introduction",
+            "narrator_script": "In this first scenario, you'll be speaking with Melissa, a 70-year-old grandmother who's trying video calling for the first time. She seems a bit nervous about using the technology but is eager to connect.",
+            "character_script": {
+                "initial": "Oh dear... I hope I'm doing this right. Can you hear me? I'm not very good with all these computer things, but my grandson helped me set this up. It's my first time trying something like this...",
+                "responses": {
+                    "good": "Oh, that's so kind of you to be patient with me. It's nice to know there's someone understanding on the other end. Would you mind telling me a bit about yourself?",
+                    "needs_improvement": "Hmm... *hesitates* Maybe this wasn't such a good idea after all. I'm not sure I can do this..."
+                }
+            },
+                "answers": [
+                    {
+                        "text": "Yes, I can hear you perfectly, Melissa! Don't worry about the technology - we'll figure it out together. I'm here to chat and I'm happy to go at whatever pace makes you comfortable.",
+                        "weight": 1.0
+                    },
+                    {
+                        "text": "Hello Melissa! You're doing great with the video call. It's perfectly normal to feel nervous at first, but I'm here to help and we can take our time getting comfortable with it.",
+                        "weight": 0.9
+                    }
+                ],
+                "required_elements": {
+                    "reassurance": ["doing great", "don't worry", "perfectly normal", "take our time"],
+                    "acknowledgment": ["can hear you", "understand", "I'm here"],
+                    "empathy": ["nervous", "comfortable", "patient"]
+                },
+                "feedback_thresholds": {
+                    "excellent": 0.8,
+                    "good": 0.7,
+                    "needs_improvement": 0.0
+                }
+            },
+            "lonely_senior": {
+                "type": "lonely_senior",
+                "narrator_script": "In this scenario, you're speaking with Martha, an 85-year-old woman who lives alone. She's been feeling particularly lonely today.",
+                "character_script": {
+                    "initial": "You know... I've been sitting here all day, just looking at old photos. None of my children live nearby anymore. I haven't spoken to anyone in days...",
+                    "responses": {
+                        "good": "Oh, it's so nice to have someone to talk to. You're right, maybe I should try to keep myself busy.",
+                        "needs_improvement": "I see... *long pause* Well, I should probably go now..."
+                    }
+                },
+                "answers": [
+                    {
+                        "text": "I hear how lonely you're feeling, Martha. It must be really hard not having family nearby. I'm here to listen and chat with you. Would you like to tell me more about those photos you're looking at?",
+                        "weight": 1.0
+                    }
+                    # Add more sample answers...
+                ],
+                "required_elements": {
+                    "empathy": ["understand", "hear you", "must be hard"],
+                    "active_listening": ["tell me more", "would you like to share"],
+                    "engagement": ["photos", "pictures", "memories"]
+                },
+                "feedback_thresholds": {
+                    "excellent": 0.8,
+                    "good": 0.7,
+                    "needs_improvement": 0.0
+                }
+            },
+            "sharing_a_story": {
+                "type": "sharing_a_story",
+                "narrator_script": "In this scenario, you'll be speaking with Frank, a 68-year-old retired mechanic who wants to share a memory from his past. He is excited to talk about the classic cars he worked on but is unsure if you’re interested in hearing about it.",
+                "character_script": {
+                    "initial": "You know, talking about all this reminds me of my days working on cars. Oh, those classic beauties! I don’t know if you'd find that interesting, though...",
+                    "responses": {
+                        "good": "Oh, I’m so glad you wanted to hear about it! Those were such wonderful times.",
+                        "needs_improvement": "Hmm... maybe it wasn’t as interesting as I thought. Sorry for going on about it."
+                    }
+                },
+                "answers": [
+                    {
+                        "text": "That sounds fascinating, Frank! I’d love to hear more about the classic cars you worked on. What was your favorite one?",
+                        "weight": 1.0
+                    },
+                    {
+                        "text": "Your work on classic cars must have been so exciting, Frank! Please tell me more about what it was like – I’d love to hear about it.",
+                        "weight": 0.9
+                    }
+                ],
+                "required_elements": {
+                    "curiosity": ["fascinating", "love to hear", "please share"],
+                    "engagement": ["favorite one", "exciting", "interesting"],
+                    "empathy": ["wonderful times", "exciting", "enjoy"]
+                },
+                "feedback_thresholds": {
+                    "excellent": 0.8,
+                    "good": 0.7,
+                    "needs_improvement": 0.0
+                }
+            }
+    }
 
 """
     Convert text to speech using OpenAI's TTS API
@@ -1289,12 +1350,11 @@ def voice_scenarios_chat():
         elif request_type == 'character':
             try:
                 character_script = scenario["character_script"]["initial"]
-                voice_type = 'nova'  # Default voice for Melissa
                 
-                if current_type == 'lonely_senior':
-                    voice_type = 'shimmer'  # Different voice for Martha
+                # Get voice type from central configuration
+                voice_type = get_voice_for_role(current_type, 'character')
+                print(f"Generating character audio for {current_type} using voice: {voice_type}")
                 
-                print(f"Generating character audio using voice: {voice_type}")
                 character_audio = text_to_speech(character_script, voice=voice_type)
                 
                 if not character_audio:
@@ -1311,7 +1371,7 @@ def voice_scenarios_chat():
         elif request_type == 'next_scenario':
             print(f"Handling next scenario request for session: {session_id}")
             
-            # Check if we've completed all scenarios
+            # Check if completed all scenarios
             if current_index >= len(VOICE_SCENARIO_ORDER) - 1:
                 return jsonify({
                     'completed': True,

@@ -11,11 +11,11 @@ class VoiceChatHandler:
     def __init__(self):
         self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         self.voice_mappings = {
-            'narrator': 'alloy',    # Clear, professional voice for narration
-            'melissa': 'nova',      # Warm, feminine voice for Melissa
-            'martha': 'shimmer',    # Another feminine voice for different characters
-            'character': 'nova',    # Default character voice
-            'default': 'alloy'      # Fallback voice
+            'narrator': 'echo',    # Male
+            'melissa': 'nova',     # Female 
+            'martha': 'shimmer',   # Female
+            'frank': 'onyx',       # Male
+            'default': 'alloy'     # Neutral fallback
         }
 
     def text_to_speech(self, text, voice_type='default'):
@@ -85,6 +85,7 @@ def test_voice_handler():
         'narrator': "Welcome to the scenario. Today we'll practice communication skills.",
         'melissa': "Hello dear, how are you doing today?",
         'martha': "I've been looking at these old photos all day...",
+        'frank': "That Shelby GT500 had a 428 cubic inch V8 engine. What a machine!"
     }
     
     for voice_type, text in test_cases.items():

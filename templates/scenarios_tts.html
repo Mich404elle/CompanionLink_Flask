@@ -398,6 +398,9 @@
         let audioChunks = [];
         let currentAudio = null;
         let isLoadingScenario = false;
+        let isProcessing = false;
+        let currentAudioPromise = null
+
 
         const recordButton = document.getElementById('recordButton');
         const statusText = document.getElementById('status-text');
@@ -431,6 +434,16 @@
         document.getElementById('nextButton').addEventListener('click', async function () {
             try {
                 console.log('Requesting next scenario...');
+
+                // Cancel any current processing
+                cancelCurrentProcessing();
+
+                // Reset loading flag
+                isLoadingScenario = false;
+
+                // Clear the conversation history immediately
+                document.getElementById('conversation-history').innerHTML = '';
+
                 const response = await fetch('/voice_scenarios_chat', {
                     method: 'POST',
                     headers: {
@@ -456,27 +469,34 @@
                     return;
                 }
 
-                // Clear existing conversation and load new scenario
-                document.getElementById('conversation-history').innerHTML = '';
+                // Set status text to show loading
+                statusText.textContent = 'Loading new scenario...';
+
+                // Force a small delay to ensure UI updates
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                // Load new scenario
                 await loadScenario();
 
             } catch (error) {
                 console.error('Error advancing to next scenario:', error);
                 statusText.textContent = 'Error loading next scenario. Please try again.';
+                isLoadingScenario = false;
             }
         });
-
-        function handleKeyDown(e) {
-            if (e.code === 'Space' && !e.repeat && !isRecording && !recordButton.disabled) {
-                e.preventDefault();
-                startRecording();
-            }
-        }
 
         function handleKeyUp(e) {
             if (e.code === 'Space' && isRecording) {
                 e.preventDefault();
                 stopRecording();
+            }
+        }
+
+        function handleKeyDown(event) {
+            // Only handle spacebar
+            if (event.code === 'Space' && !event.repeat && !isRecording && !recordButton.disabled) {
+                event.preventDefault(); // Prevent page scrolling
+                startRecording();
             }
         }
 
@@ -516,6 +536,20 @@
             messageDiv.scrollIntoView({ behavior: 'smooth' });
         }
 
+        function cancelCurrentProcessing() {
+            isProcessing = false;
+            // Stop any current audio playback
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                if (currentAudio.src) {
+                    URL.revokeObjectURL(currentAudio.src);
+                }
+                currentAudio = null;
+            }
+            // Clear any pending audio promises
+            currentAudioPromise = null;
+        }
 
         async function startRecording() {
             try {
@@ -701,21 +735,17 @@
         }
 
         async function loadScenario() {
-            if (isLoadingScenario) {
-                console.log('Scenario already loading, ignoring request');
-                return;
-            }
-
-            isLoadingScenario = true;
-            const playButton = document.getElementById('playScenario');
-            playButton.disabled = true;
+            // Reset loading state at the start
+            isLoadingScenario = false;
 
             try {
+                isLoadingScenario = true;
+                const playButton = document.getElementById('playScenario');
+                playButton.disabled = true;
+
                 // Clear existing conversation
                 const conversationHistory = document.getElementById('conversation-history');
-                if (conversationHistory) {
-                    conversationHistory.innerHTML = '';
-                }
+                conversationHistory.innerHTML = '';
 
                 console.log('Loading scenario for session:', sessionId);
 
@@ -745,9 +775,6 @@
 
                 if (narratorData.script) {
                     appendToConversation(narratorData.script, 'narrator');
-                }
-
-                if (narratorData.audio) {
                     await playAudio(narratorData.audio);
                 }
 
@@ -770,9 +797,6 @@
 
                 if (characterData.script) {
                     appendToConversation(characterData.script, 'character');
-                }
-
-                if (characterData.audio) {
                     await playAudio(characterData.audio);
                 }
 
@@ -878,28 +902,31 @@
                 currentAudio = audio;
 
                 // Set up promise for audio completion
-                const playPromise = new Promise((resolve, reject) => {
+                currentAudioPromise = new Promise((resolve, reject) => {
                     audio.onended = () => {
                         URL.revokeObjectURL(audioUrl);
                         currentAudio = null;
+                        currentAudioPromise = null;
                         resolve();
                     };
                     audio.onerror = (error) => {
                         URL.revokeObjectURL(audioUrl);
                         currentAudio = null;
+                        currentAudioPromise = null;
                         reject(error);
                     };
                 });
 
                 // Play audio and wait for completion
                 await audio.play();
-                await playPromise;
+                await currentAudioPromise;
 
             } catch (error) {
                 console.error('Audio playback error:', error);
                 throw error;
             }
         }
+
 
         // Clean up function
         function cleanupAudio() {
