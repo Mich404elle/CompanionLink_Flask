@@ -154,7 +154,7 @@
         /* Chat area styles */
         .chat-area {
             display: grid;
-            grid-template-rows: auto auto 1fr auto;
+            grid-template-rows: auto auto minmax(300px, 1fr) auto;
             background: var(--background);
             position: relative;
             max-height: 100vh;
@@ -369,6 +369,7 @@
         .voice-controls {
             border-top: 2px solid var(--primary-black);
             padding: var(--spacing);
+            padding-bottom: 65px ;
             display: grid;
             grid-template-columns: 1fr auto;
             gap: var(--spacing);
