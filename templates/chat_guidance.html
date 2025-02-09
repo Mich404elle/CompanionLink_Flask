@@ -72,16 +72,13 @@
             display: none;
             border: 2px solid var(--primary-black);
             padding: var(--spacing);
-            margin-top: var(--spacing);
-            height: 85vh;
+            height: 100vh;
             flex-direction: column;
         }
 
         #messages {
             flex: 1;
             overflow-y: auto;
-            padding: var(--spacing);
-            border-left: 2px solid var(--primary-black);
             margin-bottom: 0.5rem;
         }
 
@@ -243,7 +240,7 @@
             }
 
             .container {
-                padding: calc(var(--spacing) / 2);
+                padding: 0;
             }
 
             h1,
@@ -278,9 +275,6 @@
 </head>
 
 <body>
-    <div class="navigation-line navigation-line-top"></div>
-    <div class="navigation-line navigation-line-left"></div>
-
     <div class="container">
         <div id="initial-message">
             <h2>Practice Scenarios</h2>
