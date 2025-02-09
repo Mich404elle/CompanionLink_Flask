@@ -1,4 +1,4 @@
-app = "cl_flask_dev"
+app = "cl-flask-dev"
 primary_region = "lax"
 
 [build]
