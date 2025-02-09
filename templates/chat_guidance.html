@@ -397,6 +397,7 @@
                 <div class="timestamp">${getTimeString()}</div>
             `;
                 document.getElementById('messages').appendChild(feedbackDiv);
+                feedbackDiv.scrollIntoView({ behavior: 'smooth' }); 
             }
 
             if (data.next_scenario && !data.next_scenario.includes(currentScenario)) {
@@ -407,6 +408,7 @@
                 <div class="timestamp">${getTimeString()}</div>
             `;
                 document.getElementById('messages').appendChild(scenarioDiv);
+                scenarioDiv.scrollIntoView({ behavior: 'smooth' }); 
                 currentScenario = data.next_scenario;
             }
 
