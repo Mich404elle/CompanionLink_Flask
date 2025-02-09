@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,7 +37,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: 
+            background-image:
                 linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
                 linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
             background-size: 24px 24px;
@@ -187,6 +188,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="navigation-line navigation-line-top"></div>
     <div class="navigation-line navigation-line-left"></div>
@@ -200,7 +202,8 @@
         <main class="training-grid">
             <div class="training-card">
                 <h2 class="card-title">Text-Based Training</h2>
-                <p class="card-description">Practice handling various scenarios through text conversations. Get immediate feedback and improve your communication skills.</p>
+                <p class="card-description">Practice handling various scenarios through text conversations. Get
+                    immediate feedback and improve your communication skills.</p>
                 <div class="card-features">
                     <div class="feature-item">
                         <span class="feature-icon">✓</span>
@@ -220,7 +223,8 @@
 
             <div class="training-card">
                 <h2 class="card-title">Voice-Based Training</h2>
-                <p class="card-description">Practice scenarios using voice interaction. Experience more natural conversations and improve your verbal communication.</p>
+                <p class="card-description">Practice scenarios using voice interaction. Experience more natural
+                    conversations and improve your verbal communication.</p>
                 <div class="card-features">
                     <div class="feature-item">
                         <span class="feature-icon">✓</span>
@@ -243,6 +247,7 @@
     <a href="/" class="back-button">Back to Home</a>
 
     <script>
+        // Handle internal link clicks with animation
         document.querySelectorAll('a[href^="/"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 const href = this.getAttribute('href');
@@ -254,13 +259,40 @@
             });
         });
 
+        // Handle initial page load and browser navigation
         document.addEventListener('DOMContentLoaded', function () {
-            document.body.style.opacity = '0';
-            requestAnimationFrame(() => {
-                document.body.style.transition = 'opacity 0.3s ease';
-                document.body.style.opacity = '1';
-            });
+            // Initial page load animation
+            if (document.body.style.opacity !== '1') {
+                document.body.style.opacity = '0';
+                requestAnimationFrame(() => {
+                    document.body.style.transition = 'opacity 0.3s ease';
+                    document.body.style.opacity = '1';
+                });
+            }
         });
+
+        // Handle browser back/forward navigation
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+
+        // Additional cache control headers
+        document.addEventListener('unload', function () {
+            window.sessionStorage.setItem('needsReload', 'true');
+        });
+
+        if (window.sessionStorage.getItem('needsReload')) {
+            window.sessionStorage.removeItem('needsReload');
+            window.location.reload();
+        }
+
+        // Cache control for performance navigation
+        if (window.performance && window.performance.navigation.type === 2) {
+            window.location.reload();
+        }
     </script>
 </body>
+
 </html>

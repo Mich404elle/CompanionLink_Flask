@@ -232,24 +232,40 @@
     </footer>
 
     <script>
-        document.querySelectorAll('a[href^="/"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                const href = this.getAttribute('href');
-                e.preventDefault();
-                document.body.style.opacity = '0';
-                setTimeout(() => {
-                    window.location.href = href;
-                }, 200);
+        document.addEventListener('DOMContentLoaded', function () {
+            // Handle internal link clicks with animation
+            document.querySelectorAll('a[href^="/"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    const href = this.getAttribute('href');
+                    e.preventDefault();
+                    document.body.style.opacity = '0';
+                    setTimeout(() => {
+                        window.location.href = href;
+                    }, 200);
+                });
             });
+
+            // Initial page load animation
+            if (document.body.style.opacity !== '1') {
+                document.body.style.opacity = '0';
+                requestAnimationFrame(() => {
+                    document.body.style.transition = 'opacity 0.3s ease';
+                    document.body.style.opacity = '1';
+                });
+            }
         });
 
-        document.addEventListener('DOMContentLoaded', function () {
-            document.body.style.opacity = '0';
-            requestAnimationFrame(() => {
-                document.body.style.transition = 'opacity 0.3s ease';
-                document.body.style.opacity = '1';
-            });
+        // Handle browser back/forward navigation
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
         });
+
+        // Cache control
+        if (window.performance && window.performance.navigation.type === 2) {
+            window.location.reload();
+        }
     </script>
 </body>
 

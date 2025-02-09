@@ -752,6 +752,39 @@
     </div>
 
     <script>
+        // Handle browser navigation events
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+
+        // Handle initial page load and browser navigation
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initial page load animation
+            if (document.body.style.opacity !== '1') {
+                document.body.style.opacity = '0';
+                requestAnimationFrame(() => {
+                    document.body.style.transition = 'opacity 0.3s ease';
+                    document.body.style.opacity = '1';
+                });
+            }
+        });
+
+        // Additional cache control
+        document.addEventListener('unload', function () {
+            window.sessionStorage.setItem('needsReload', 'true');
+        });
+
+        if (window.sessionStorage.getItem('needsReload')) {
+            window.sessionStorage.removeItem('needsReload');
+            window.location.reload();
+        }
+
+        // Cache control for performance navigation
+        if (window.performance && window.performance.navigation.type === 2) {
+            window.location.reload();
+        }
         const sessionId = Date.now().toString();
         const messagesContainer = document.getElementById('messages');
 

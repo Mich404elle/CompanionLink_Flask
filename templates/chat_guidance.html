@@ -258,12 +258,16 @@
             }
 
             .button-group {
-                flex-direction: column;
+                display: flex;
+                flex-direction: row;
                 width: 100%;
+                gap: 0.25rem;
             }
 
             button {
-                width: 100%;
+                flex: 1;
+                padding: 0.5rem 0.25rem;
+                font-size: 0.8rem;
             }
 
             .keyboard-hint {
@@ -296,9 +300,9 @@
                     PRESS ENTER TO SEND, SHIFT+ENTER FOR NEW LINE
                 </div>
                 <div class="button-group">
-                    <button onclick="sendMessage()">Send Response</button>
-                    <button onclick="goToMainMenu()">Back to Main Menu</button>
-                    <button onclick="jumpToNextScenario()">Next Scenario</button>
+                    <button onclick="sendMessage()">Send</button>
+                    <button onclick="goToMainMenu()">Main Menu</button>
+                    <button onclick="jumpToNextScenario()">Next</button>
                 </div>
             </div>
         </div>

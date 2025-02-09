@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
+            color-scheme: light;
             --primary-black: #000000;
             --primary-red: #FF0000;
             --background: #FFFFFF;
@@ -20,6 +21,19 @@
             --rapport-medium: #f99d73;
             --rapport-high: #f97a40;
             --rapport-excellent: #f54e00;
+        }
+
+        /* Force light mode on critical elements */
+        body,
+        .sidebar,
+        .chat-area,
+        .message,
+        .input-area,
+        .metric-container,
+        .chat-header,
+        .feedback-modal,
+        textarea {
+            color-scheme: light;
         }
 
         * {
@@ -223,6 +237,7 @@
             background: var(--rapport-excellent);
             width: 0;
             transition: width 0.3s ease;
+            color: var(--background);
         }
 
         .progress-text {
@@ -290,7 +305,7 @@
 
         .message.user {
             margin-left: auto;
-            background: var(--primary-black);
+            background-color: var(--primary-black);
             color: var(--background);
             border-radius: 1rem 1rem 0 1rem;
         }
@@ -299,7 +314,8 @@
             margin-right: auto;
             border: 2px solid var(--primary-black);
             border-radius: 1rem 1rem 1rem 0;
-            background: var(--background);
+            background-color: var(--background);
+            color: var(--primary-black);
         }
 
         .message .timestamp {
@@ -374,6 +390,9 @@
             resize: none;
             min-height: 45px;
             width: 100%;
+            color-scheme: light;
+            background-color: var(--background);
+            color: var(--primary-black);
         }
 
         button {
@@ -552,10 +571,49 @@
 
         /* Dark Mode Support */
         @media (prefers-color-scheme: dark) {
-            :root {
-                --background: #1a1a1a;
-                --primary-black: #ffffff;
-                --grid-color: rgba(255, 255, 255, 0.1);
+
+            /* Only modify specific elements that should change in dark mode */
+            .menu-toggle {
+                background: #333333;
+                color: #FFFFFF;
+            }
+
+            .overlay {
+                background: rgba(0, 0, 0, 0.7);
+            }
+
+            /* Keep grid visible but subtle */
+            body::before {
+                opacity: 0.2;
+            }
+
+            /* Ensure buttons remain visible */
+            button {
+                background: #333333;
+            }
+
+            button:hover {
+                background: var(--primary-red);
+            }
+
+            /* Adjust progress bars for dark mode */
+            .progress {
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            /* Keep message borders visible */
+            .message.bot {
+                border-color: rgba(0, 0, 0, 0.2);
+            }
+
+            /* Keep scrollbar visible */
+            .messages-container::-webkit-scrollbar-track {
+                background: var(--background);
+            }
+
+            .messages-container::-webkit-scrollbar-thumb {
+                background-color: #333333;
+                border-color: var(--background);
             }
         }
 
