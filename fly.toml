@@ -1,12 +1,12 @@
 app = "cl-flask-dev"
-primary_region = "lax"
+primary_region = "yyz"
 
 [build]
   builder = "paketobuildpacks/builder:base"
 
 [env]
   PORT = "8080"
-  FLASK_APP = "app:app"  # adjust if your Flask app has a different name
+  FLASK_APP = "app:app"
 
 [http_service]
   internal_port = 8080
