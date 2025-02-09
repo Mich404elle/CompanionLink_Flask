@@ -6,6 +6,7 @@ primary_region = "lax"
 
 [env]
   PORT = "8080"
+  FLASK_APP = "app:app"  # adjust if your Flask app has a different name
 
 [http_service]
   internal_port = 8080
@@ -13,3 +14,8 @@ primary_region = "lax"
   auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 0
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 1024
