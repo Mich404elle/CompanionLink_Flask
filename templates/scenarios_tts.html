@@ -89,20 +89,24 @@
             margin-bottom: var(--spacing-sm);
         }
 
-        /* Main Container */
+        /* Updated Main Container */
         .scenario-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: 1fr 200px;
             gap: var(--spacing-md);
             border: 2px solid var(--primary-black);
             padding: var(--spacing-md);
             background: var(--background);
             border-radius: var(--radius-sm);
-            height: calc(100vh - 150px);
+            height: calc(100vh - 330px);
         }
 
-        /* Conversation Section */
+        .next-controls {
+            padding: var(--spacing-md);
+            border-top: 1px solid var(--grid-color);
+            background: var(--background);
+        }
+
         .conversation-section {
             flex: 1;
             overflow-y: auto;
@@ -160,19 +164,25 @@
             margin-top: var(--spacing-xs);
         }
 
-        /* Controls Section */
+        /* Controls Section*/
         .controls {
-            display: grid;
-            gap: var(--spacing-md);
-            padding: var(--spacing-md);
-            border-top: 2px solid var(--primary-black);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xl);
+            border-left: 2px solid var(--primary-black);
+            padding: var(--spacing-xl);
             background: var(--background);
         }
 
+        /* Button Group*/
         .button-group {
             display: flex;
-            gap: var(--spacing-md);
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
+        #nextButton {
+            margin-bottom: var(--spacing-xs);
         }
 
         /* Buttons */
@@ -190,7 +200,7 @@
             cursor: pointer;
             transition: all 0.2s ease;
             border-radius: var(--radius-sm);
-            min-width: 150px;
+            width: 100%;
             font-size: var(--font-size-sm);
         }
 
@@ -235,6 +245,7 @@
             border-radius: var(--radius-sm);
             font-size: var(--font-size-sm);
             font-weight: 500;
+            margin-bottom: var(--spacing-md);
         }
 
         .progress-bar {
@@ -259,6 +270,13 @@
             margin-top: var(--spacing-xs);
         }
 
+        /* Next controls section */
+        .next-controls {
+            padding: var(--spacing-md);
+            border-top: 1px solid var(--grid-color);
+            background: var(--background);
+        }
+
         /* Animations */
         @keyframes pulse {
 
@@ -275,25 +293,59 @@
         /* Media Queries */
         @media (max-width: 768px) {
             :root {
-                --spacing-md: 0.75rem;
+                --spacing-md: 0.3rem;
                 --spacing-lg: 1rem;
             }
 
             .container {
-                padding: var(--spacing-xs);
+                padding-bottom: 160px;
             }
 
             .scenario-container {
-                height: calc(100vh - 120px);
+                grid-template-columns: 1fr;
+                height: calc(100vh - 260px);
+            }
+
+            .controls {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                border-left: none;
+                border-top: 2px solid var(--primary-black);
+                padding: var(--spacing-md) var(--spacing-md) max(var(--spacing-md), env(safe-area-inset-bottom));
+                z-index: 1000;
             }
 
             .button-group {
-                flex-direction: column;
+                max-width: min(1200px, 100%);
+                margin: 0 auto;
+                gap: var(--spacing-md);
+            }
+
+            .button-row {
+                display: flex;
+                gap: var(--spacing-md);
+                margin-bottom: var(--spacing-md);
+            }
+
+            .button-row .control-button {
+                flex: 1;
+            }
+
+            #nextButton {
+                margin-bottom: 0;
+            }
+
+            /* Next button takes full width */
+            #recordButton {
+                width: 100%;
+                height: 50px;
             }
 
             .control-button {
-                width: 100%;
-                min-width: unset;
+                flex: 1 1 auto;
+                min-width: 150px;
             }
 
             .message {
@@ -318,29 +370,44 @@
             .controls {
                 padding: var(--spacing-sm);
             }
-        }
 
-        /* Touch Device Optimizations */
-        @media (hover: none) {
+            .button-group {
+                flex-direction: column;
+            }
+
             .control-button {
-                padding: var(--spacing-md);
-                min-height: 44px;
-                /* iOS minimum touch target */
+                width: 100%;
             }
 
-            .control-button:hover {
-                transform: none;
-            }
-        }
-
-        /* Safe Area Insets */
-        @supports (padding: max(0px)) {
             .container {
-                padding-left: max(var(--spacing-md), env(safe-area-inset-left));
-                padding-right: max(var(--spacing-md), env(safe-area-inset-right));
-                padding-bottom: max(var(--spacing-md), env(safe-area-inset-bottom));
+                padding-bottom: 180px;
+                /* More space for stacked buttons */
             }
-        }
+
+            #recordButton {
+                height: 60px;
+            }
+
+            /* Touch Device Optimizations */
+            @media (hover: none) {
+                .control-button {
+                    padding: var(--spacing-md);
+                    min-height: 44px;
+                }
+
+                .control-button:hover {
+                    transform: none;
+                }
+            }
+
+            /* Safe Area Insets */
+            @supports (padding: max(0px)) {
+                .container {
+                    padding-left: max(var(--spacing-md), env(safe-area-inset-left));
+                    padding-right: max(var(--spacing-md), env(safe-area-inset-right));
+                    padding-bottom: max(var(--spacing-md), env(safe-area-inset-bottom));
+                }
+            }
     </style>
 </head>
 
@@ -352,584 +419,533 @@
         </header>
 
         <main class="scenario-container">
-            <div class="conversation-section scenario-section">
+            <!-- Conversation Section -->
+            <div class="conversation-section">
                 <div id="conversation-history"></div>
             </div>
 
-            <div class="controls">
+            <!-- Play Scenario Control -->
+            <div class="next-controls">
                 <div id="status-text">Ready to begin scenario</div>
+                <button class="control-button" id="playScenario">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                    Play Scenario
+                </button>
+            </div>
+        </main>
 
-                <div class="button-group">
-                    <button class="control-button" id="playScenario">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <polygon points="5 3 19 12 5 21 5 3" />
-                        </svg>
-                        Play Scenario
-                    </button>
-
-                    <button class="control-button" id="recordButton" disabled>
-                        <div class="recording-indicator"></div>
-                        Hold to Speak
+        <!-- Fixed Bottom Navigation -->
+        <div class="controls">
+            <div class="button-group">
+                <div class="button-row">
+                    <button class="control-button" id="nextButton">
+                        Next Scenario
                     </button>
 
                     <button class="control-button" onclick="window.location.href='/'">
                         Back to Menu
                     </button>
-
-                    <button class="control-button" id="nextButton">
-                        Next Scenario
-                    </button>
                 </div>
 
-                <div class="progress-bar">
-                    <div class="progress-fill"></div>
-                </div>
-
+                <button class="control-button" id="recordButton" disabled>
+                    <div class="recording-indicator"></div>
+                    Hold to Speak
+                </button>
                 <div class="keyboard-hint">Press and hold SPACE to speak</div>
             </div>
-        </main>
+        </div>
     </div>
+</body>
 
-    <script>
-        let sessionId = Date.now().toString();
-        let isRecording = false;
-        let mediaRecorder = null;
-        let audioChunks = [];
-        let currentAudio = null;
-        let isLoadingScenario = false;
-        let isProcessing = false;
-        let currentAudioPromise = null
+<script>
+    let sessionId = Date.now().toString();
+    let isRecording = false;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let currentAudio = null;
+    let isLoadingScenario = false;
+    let isProcessing = false;
+    let currentAudioPromise = null
 
 
-        const recordButton = document.getElementById('recordButton');
-        const statusText = document.getElementById('status-text');
-        const progressFill = document.querySelector('.progress-fill');
-        const narratorText = document.getElementById('narrator-text');
-        const characterResponse = document.getElementById('character-response');
+    const recordButton = document.getElementById('recordButton');
+    const statusText = document.getElementById('status-text');
+    const progressFill = document.querySelector('.progress-fill');
+    const narratorText = document.getElementById('narrator-text');
+    const characterResponse = document.getElementById('character-response');
 
-        // Initialize event listeners
-        document.addEventListener('keydown', handleKeyDown);
-        document.addEventListener('keyup', handleKeyUp);
+    // Initialize event listeners
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
 
-        // Mouse events for record button
-        recordButton.addEventListener('mousedown', handleRecordStart);
-        recordButton.addEventListener('mouseup', handleRecordStop);
-        recordButton.addEventListener('mouseleave', handleRecordStop);
+    // Mouse events for record button
+    recordButton.addEventListener('mousedown', handleRecordStart);
+    recordButton.addEventListener('mouseup', handleRecordStop);
+    recordButton.addEventListener('mouseleave', handleRecordStop);
 
-        // Touch events for record button
-        recordButton.addEventListener('touchstart', handleRecordStart);
-        recordButton.addEventListener('touchend', handleRecordStop);
-        recordButton.addEventListener('touchcancel', handleRecordStop);
+    // Touch events for record button
+    recordButton.addEventListener('touchstart', handleRecordStart);
+    recordButton.addEventListener('touchend', handleRecordStop);
+    recordButton.addEventListener('touchcancel', handleRecordStop);
 
-        document.getElementById('playScenario').addEventListener('click', async (e) => {
-            e.stopPropagation(); // Prevent event bubbling
-            if (isLoadingScenario) return;
-            const playButton = document.getElementById('playScenario');
-            const nextButton = document.getElementById('nextButton');
-            playButton.disabled = true;
-            await loadScenario();
-            nextButton.disabled = false; // Enable next button after first scenario loads
-        });
-        document.getElementById('nextButton').addEventListener('click', async function () {
-            try {
-                console.log('Requesting next scenario...');
+    document.getElementById('playScenario').addEventListener('click', async (e) => {
+        e.stopPropagation(); // Prevent event bubbling
+        if (isLoadingScenario) return;
+        const playButton = document.getElementById('playScenario');
+        const nextButton = document.getElementById('nextButton');
+        playButton.disabled = true;
+        await loadScenario();
+        nextButton.disabled = false; // Enable next button after first scenario loads
+    });
+    document.getElementById('nextButton').addEventListener('click', async function () {
+        try {
+            console.log('Requesting next scenario...');
 
-                // Cancel any current processing
-                cancelCurrentProcessing();
+            // Cancel any current processing
+            cancelCurrentProcessing();
 
-                // Reset loading flag
-                isLoadingScenario = false;
+            // Reset loading flag
+            isLoadingScenario = false;
 
-                // Clear the conversation history immediately
-                document.getElementById('conversation-history').innerHTML = '';
+            // Clear the conversation history immediately
+            document.getElementById('conversation-history').innerHTML = '';
 
-                const response = await fetch('/voice_scenarios_chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        session_id: sessionId,
-                        request_type: 'next_scenario'
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to advance scenario: ${response.status}`);
-                }
-
-                const data = await response.json();
-                console.log('Next scenario response:', data);
-
-                if (data.completed) {
-                    statusText.textContent = 'All scenarios completed!';
-                    this.disabled = true;
-                    recordButton.disabled = true;
-                    return;
-                }
-
-                // Set status text to show loading
-                statusText.textContent = 'Loading new scenario...';
-
-                // Force a small delay to ensure UI updates
-                await new Promise(resolve => setTimeout(resolve, 100));
-
-                // Load new scenario
-                await loadScenario();
-
-            } catch (error) {
-                console.error('Error advancing to next scenario:', error);
-                statusText.textContent = 'Error loading next scenario. Please try again.';
-                isLoadingScenario = false;
-            }
-        });
-
-        function handleKeyUp(e) {
-            if (e.code === 'Space' && isRecording) {
-                e.preventDefault();
-                stopRecording();
-            }
-        }
-
-        function handleKeyDown(event) {
-            // Only handle spacebar
-            if (event.code === 'Space' && !event.repeat && !isRecording && !recordButton.disabled) {
-                event.preventDefault(); // Prevent page scrolling
-                startRecording();
-            }
-        }
-
-        function handleRecordStart(e) {
-            e.preventDefault(); // Prevent default for both mouse and touch
-            if (!isRecording && !recordButton.disabled) {
-                startRecording();
-                statusText.textContent = "Recording... Release to stop";
-            }
-        }
-
-        function handleRecordStop(e) {
-            e.preventDefault(); // Prevent default for both mouse and touch
-            if (isRecording) {
-                stopRecording();
-                statusText.textContent = "Processing...";
-            }
-        }
-
-        function appendToConversation(text, type) {
-            const conversationHistory = document.getElementById('conversation-history');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}`;
-
-            const timestamp = new Date().toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
+            const response = await fetch('/voice_scenarios_chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    request_type: 'next_scenario'
+                })
             });
 
-            messageDiv.innerHTML = `
+            if (!response.ok) {
+                throw new Error(`Failed to advance scenario: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Next scenario response:', data);
+
+            if (data.completed) {
+                statusText.textContent = 'All scenarios completed!';
+                this.disabled = true;
+                recordButton.disabled = true;
+                return;
+            }
+
+            // Set status text to show loading
+            statusText.textContent = 'Loading new scenario...';
+
+            // Force a small delay to ensure UI updates
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Load new scenario
+            await loadScenario();
+
+        } catch (error) {
+            console.error('Error advancing to next scenario:', error);
+            statusText.textContent = 'Error loading next scenario. Please try again.';
+            isLoadingScenario = false;
+        }
+    });
+
+    function handleKeyUp(e) {
+        if (e.code === 'Space' && isRecording) {
+            e.preventDefault();
+            stopRecording();
+        }
+    }
+
+    function handleKeyDown(event) {
+        // Only handle spacebar
+        if (event.code === 'Space' && !event.repeat && !isRecording && !recordButton.disabled) {
+            event.preventDefault(); // Prevent page scrolling
+            startRecording();
+        }
+    }
+
+    function handleRecordStart(e) {
+        e.preventDefault(); // Prevent default for both mouse and touch
+        if (!isRecording && !recordButton.disabled) {
+            startRecording();
+            statusText.textContent = "Recording... Release to stop";
+        }
+    }
+
+    function handleRecordStop(e) {
+        e.preventDefault(); // Prevent default for both mouse and touch
+        if (isRecording) {
+            stopRecording();
+            statusText.textContent = "Processing...";
+        }
+    }
+
+    function appendToConversation(text, type) {
+        const conversationHistory = document.getElementById('conversation-history');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+
+        const timestamp = new Date().toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+
+        messageDiv.innerHTML = `
         ${text}
         <div class="message-timestamp">${timestamp}</div>
     `;
 
-            conversationHistory.appendChild(messageDiv);
-            messageDiv.scrollIntoView({ behavior: 'smooth' });
-        }
+        conversationHistory.appendChild(messageDiv);
+        messageDiv.scrollIntoView({ behavior: 'smooth' });
+    }
 
-        function cancelCurrentProcessing() {
-            isProcessing = false;
-            // Stop any current audio playback
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-                if (currentAudio.src) {
-                    URL.revokeObjectURL(currentAudio.src);
-                }
-                currentAudio = null;
+    function cancelCurrentProcessing() {
+        isProcessing = false;
+        // Stop any current audio playback
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+            if (currentAudio.src) {
+                URL.revokeObjectURL(currentAudio.src);
             }
-            // Clear any pending audio promises
-            currentAudioPromise = null;
+            currentAudio = null;
         }
+        // Clear any pending audio promises
+        currentAudioPromise = null;
+    }
 
-        async function startRecording() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
+    async function startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
 
-                mediaRecorder.addEventListener('dataavailable', (event) => {
-                    audioChunks.push(event.data);
-                });
+            mediaRecorder.addEventListener('dataavailable', (event) => {
+                audioChunks.push(event.data);
+            });
 
-                mediaRecorder.addEventListener('stop', () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    sendAudioToServer(audioBlob);
-                });
+            mediaRecorder.addEventListener('stop', () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                sendAudioToServer(audioBlob);
+            });
 
-                mediaRecorder.start();
-                isRecording = true;
-                recordButton.classList.add('recording');
-                statusText.textContent = 'Recording... Release to send';
-                progressFill.style.width = '100%';
+            mediaRecorder.start();
+            isRecording = true;
+            recordButton.classList.add('recording');
+            statusText.textContent = 'Recording... Release to send';
+            progressFill.style.width = '100%';
 
-            } catch (err) {
-                console.error('Error accessing microphone:', err);
-                statusText.textContent = 'Error: Could not access microphone';
+        } catch (err) {
+            console.error('Error accessing microphone:', err);
+            statusText.textContent = 'Error: Could not access microphone';
+        }
+    }
+
+    function stopRecording() {
+        if (mediaRecorder && isRecording) {
+            mediaRecorder.stop();
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            isRecording = false;
+            recordButton.classList.remove('recording');
+            statusText.textContent = 'Processing...';
+            progressFill.style.width = '0';
+        }
+    }
+
+    async function sendAudioToServer(audioBlob) {
+        try {
+            // First, set up the form data for the audio transcription
+            const formData = new FormData();
+            formData.append('audio', audioBlob);
+            formData.append('session_id', sessionId);
+
+            console.log('Sending audio for transcription...');
+
+            // Get transcription
+            const transcribeResponse = await fetch('/transcribe', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!transcribeResponse.ok) {
+                throw new Error('Transcription failed');
             }
-        }
 
-        function stopRecording() {
-            if (mediaRecorder && isRecording) {
-                mediaRecorder.stop();
-                mediaRecorder.stream.getTracks().forEach(track => track.stop());
-                isRecording = false;
-                recordButton.classList.remove('recording');
-                statusText.textContent = 'Processing...';
-                progressFill.style.width = '0';
+            const transcribeData = await transcribeResponse.json();
+            console.log('Transcribed text:', transcribeData.text);
+
+            if (!transcribeData.text) {
+                throw new Error('No transcribed text received');
             }
-        }
 
-        async function sendAudioToServer(audioBlob) {
-            try {
-                // First, set up the form data for the audio transcription
-                const formData = new FormData();
-                formData.append('audio', audioBlob);
-                formData.append('session_id', sessionId);
+            appendToConversation(transcribeData.text, 'user');
 
-                console.log('Sending audio for transcription...');
+            // Now send the transcribed text to the chat endpoint
+            console.log('Sending to chat endpoint...');
+            const chatResponse = await fetch('/voice_scenarios_chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    request_type: 'user_response',
+                    message: transcribeData.text
+                })
+            });
 
-                // Get transcription
-                const transcribeResponse = await fetch('/transcribe', {
-                    method: 'POST',
-                    body: formData
-                });
+            if (!chatResponse.ok) {
+                throw new Error('Chat processing failed');
+            }
 
-                if (!transcribeResponse.ok) {
-                    throw new Error('Transcription failed');
+            const chatData = await chatResponse.json();
+            console.log('Chat response data:', chatData);
+
+            // Show evaluation feedback
+            if (chatData.feedback) {
+                statusText.textContent = chatData.feedback;
+                if (chatData.score !== undefined) {
+                    statusText.textContent += ` (Score: ${(chatData.score * 100).toFixed(1)}%)`;
                 }
+            }
 
-                const transcribeData = await transcribeResponse.json();
-                console.log('Transcribed text:', transcribeData.text);
 
-                if (!transcribeData.text) {
-                    throw new Error('No transcribed text received');
-                }
+            // Then handle the character's response
+            if (chatData.character_response) {
+                appendToConversation(chatData.character_response, 'character');
 
-                appendToConversation(transcribeData.text, 'user');
-
-                // Now send the transcribed text to the chat endpoint
-                console.log('Sending to chat endpoint...');
-                const chatResponse = await fetch('/voice_scenarios_chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        session_id: sessionId,
-                        request_type: 'user_response',
-                        message: transcribeData.text
-                    })
-                });
-
-                if (!chatResponse.ok) {
-                    throw new Error('Chat processing failed');
-                }
-
-                const chatData = await chatResponse.json();
-                console.log('Chat response data:', chatData);
-
-                // Show evaluation feedback
-                if (chatData.feedback) {
-                    statusText.textContent = chatData.feedback;
-                    if (chatData.score !== undefined) {
-                        statusText.textContent += ` (Score: ${(chatData.score * 100).toFixed(1)}%)`;
+                // Play character audio if available
+                if (chatData.character_audio) {
+                    try {
+                        await playAudio(chatData.character_audio);
+                    } catch (audioError) {
+                        console.error('Error playing character audio:', audioError);
                     }
                 }
+            }
 
+            // Handle the narrator's response first
+            if (chatData.narrator_message) {
+                appendToConversation(chatData.narrator_message, 'narrator');
 
-                // Then handle the character's response
-                if (chatData.character_response) {
-                    appendToConversation(chatData.character_response, 'character');
-
-                    // Play character audio if available
-                    if (chatData.character_audio) {
-                        try {
-                            await playAudio(chatData.character_audio);
-                        } catch (audioError) {
-                            console.error('Error playing character audio:', audioError);
-                        }
+                // Play narrator audio if available
+                if (chatData.narrator_audio) {
+                    try {
+                        await playAudio(chatData.narrator_audio);
+                    } catch (audioError) {
+                        console.error('Error playing narrator audio:', audioError);
                     }
                 }
-
-                // Handle the narrator's response first
-                if (chatData.narrator_message) {
-                    appendToConversation(chatData.narrator_message, 'narrator');
-
-                    // Play narrator audio if available
-                    if (chatData.narrator_audio) {
-                        try {
-                            await playAudio(chatData.narrator_audio);
-                        } catch (audioError) {
-                            console.error('Error playing narrator audio:', audioError);
-                        }
-                    }
-                }
-
-                // Handle next scenario if needed
-                if (chatData.next_scenario) {
-                    setTimeout(() => {
-                        statusText.textContent = 'Loading next scenario...';
-                        loadScenario();
-                    }, 3000);
-                }
-
-                // Enable recording for next response
-                recordButton.disabled = false;
-
-            } catch (error) {
-                console.error('Error in audio processing:', error);
-                statusText.textContent = 'Error processing your response. Please try again.';
-                recordButton.disabled = false;
-            }
-        }
-
-        function updateUI(data) {
-            // Update status text with feedback if available
-            if (data.feedback) {
-                statusText.textContent = data.feedback;
             }
 
-            // Update score if available
-            if (data.score !== undefined) {
-                const scorePercentage = (data.score * 100).toFixed(1);
-                console.log(`Score: ${scorePercentage}%`);
-
-                // Update progress bar if it exists
-                const progressBar = document.querySelector('.progress-fill');
-                if (progressBar) {
-                    progressBar.style.width = `${scorePercentage}%`;
-                }
-            }
-
-            // Enable recording button for next response
-            recordButton.disabled = false;
-
-            // Handle next scenario loading
-            if (data.next_scenario) {
-                console.log('Next scenario available:', data.next_scenario);
+            // Handle next scenario if needed
+            if (chatData.next_scenario) {
                 setTimeout(() => {
                     statusText.textContent = 'Loading next scenario...';
                     loadScenario();
                 }, 3000);
             }
 
-            // Handle completion
-            if (data.completed) {
-                statusText.textContent = 'All scenarios completed!';
-                recordButton.disabled = true;
-                const nextButton = document.getElementById('nextButton');
-                if (nextButton) {
-                    nextButton.disabled = true;
-                }
-            }
-        }
-
-        async function loadScenario() {
-            // Reset loading state at the start
-            isLoadingScenario = false;
-
-            try {
-                isLoadingScenario = true;
-                const playButton = document.getElementById('playScenario');
-                playButton.disabled = true;
-
-                // Clear existing conversation
-                const conversationHistory = document.getElementById('conversation-history');
-                conversationHistory.innerHTML = '';
-
-                console.log('Loading scenario for session:', sessionId);
-
-                // Load narrator's script
-                const narratorResponse = await fetch('/voice_scenarios_chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        session_id: sessionId,
-                        request_type: 'narrator'
-                    })
-                });
-
-                if (!narratorResponse.ok) {
-                    throw new Error(`Failed to load narrator script: ${narratorResponse.status}`);
-                }
-
-                const narratorData = await narratorResponse.json();
-                console.log('Narrator data received:', narratorData);
-
-                if (narratorData.completed) {
-                    statusText.textContent = 'All scenarios completed!';
-                    document.getElementById('nextButton').disabled = true;
-                    recordButton.disabled = true;
-                    return;
-                }
-
-                if (narratorData.script) {
-                    appendToConversation(narratorData.script, 'narrator');
-                    await playAudio(narratorData.audio);
-                }
-
-                // Load character's initial response
-                const characterResponse = await fetch('/voice_scenarios_chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        session_id: sessionId,
-                        request_type: 'character'
-                    })
-                });
-
-                if (!characterResponse.ok) {
-                    throw new Error(`Failed to load character response: ${characterResponse.status}`);
-                }
-
-                const characterData = await characterResponse.json();
-                console.log('Character data received:', characterData);
-
-                if (characterData.script) {
-                    appendToConversation(characterData.script, 'character');
-                    await playAudio(characterData.audio);
-                }
-
-                statusText.textContent = 'Ready for your response';
-                recordButton.disabled = false;
-
-            } catch (error) {
-                console.error('Error in loadScenario:', error);
-                statusText.textContent = `Error loading scenario: ${error.message}`;
-            } finally {
-                isLoadingScenario = false;
-                playButton.disabled = false;
-            }
-        }
-
-        async function processTranscription(text) {
-            try {
-                const response = await fetch('/voice_scenarios_chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        session_id: sessionId,
-                        request_type: 'response',
-                        message: text
-                    })
-                });
-
-                if (!response.ok) throw new Error('Processing failed');
-
-                const data = await response.json();
-
-                // Update character response
-                if (data.character_response) {
-                    document.getElementById('character-response').innerHTML = data.character_response;
-                }
-
-                // Play audio response if available
-                if (data.audio) {
-                    try {
-                        await playAudio(data.audio);
-                    } catch (error) {
-                        statusText.textContent = 'Error playing audio. Continuing with text only.';
-                    }
-                }
-
-                updateUI(data);
-
-            } catch (error) {
-                console.error('Error:', error);
-                statusText.textContent = 'Error processing response. Please try again.';
-            }
-        }
-
-        function updateUI(data) {
-            if (data.feedback) {
-                statusText.textContent = data.feedback;
-            }
-
+            // Enable recording for next response
             recordButton.disabled = false;
 
-            // If this is the end of the scenario
-            if (data.next_scenario) {
-                setTimeout(() => {
-                    statusText.textContent = 'Loading next scenario...';
-                    loadScenario();
-                }, 3000); // Wait 3 seconds before loading next scenario
+        } catch (error) {
+            console.error('Error in audio processing:', error);
+            statusText.textContent = 'Error processing your response. Please try again.';
+            recordButton.disabled = false;
+        }
+    }
+
+    function updateUI(data) {
+        // Update status text with feedback if available
+        if (data.feedback) {
+            statusText.textContent = data.feedback;
+        }
+
+        // Update score if available
+        if (data.score !== undefined) {
+            const scorePercentage = (data.score * 100).toFixed(1);
+            console.log(`Score: ${scorePercentage}%`);
+
+            // Update progress bar if it exists
+            const progressBar = document.querySelector('.progress-fill');
+            if (progressBar) {
+                progressBar.style.width = `${scorePercentage}%`;
+            }
+        }
+
+        // Enable recording button for next response
+        recordButton.disabled = false;
+
+        // Handle next scenario loading
+        if (data.next_scenario) {
+            console.log('Next scenario available:', data.next_scenario);
+            setTimeout(() => {
+                statusText.textContent = 'Loading next scenario...';
+                loadScenario();
+            }, 3000);
+        }
+
+        // Handle completion
+        if (data.completed) {
+            statusText.textContent = 'All scenarios completed!';
+            recordButton.disabled = true;
+            const nextButton = document.getElementById('nextButton');
+            if (nextButton) {
+                nextButton.disabled = true;
+            }
+        }
+    }
+
+    async function loadScenario() {
+        // Reset loading state at the start
+        isLoadingScenario = false;
+
+        try {
+            isLoadingScenario = true;
+            const playButton = document.getElementById('playScenario');
+            playButton.disabled = true;
+
+            // Clear existing conversation
+            const conversationHistory = document.getElementById('conversation-history');
+            conversationHistory.innerHTML = '';
+
+            console.log('Loading scenario for session:', sessionId);
+
+            // Load narrator's script
+            const narratorResponse = await fetch('/voice_scenarios_chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    request_type: 'narrator'
+                })
+            });
+
+            if (!narratorResponse.ok) {
+                throw new Error(`Failed to load narrator script: ${narratorResponse.status}`);
             }
 
-            // If all scenarios are completed
-            if (data.completed) {
+            const narratorData = await narratorResponse.json();
+            console.log('Narrator data received:', narratorData);
+
+            if (narratorData.completed) {
                 statusText.textContent = 'All scenarios completed!';
-                recordButton.disabled = true;
                 document.getElementById('nextButton').disabled = true;
+                recordButton.disabled = true;
+                return;
             }
+
+            if (narratorData.script) {
+                appendToConversation(narratorData.script, 'narrator');
+                await playAudio(narratorData.audio);
+            }
+
+            // Load character's initial response
+            const characterResponse = await fetch('/voice_scenarios_chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    request_type: 'character'
+                })
+            });
+
+            if (!characterResponse.ok) {
+                throw new Error(`Failed to load character response: ${characterResponse.status}`);
+            }
+
+            const characterData = await characterResponse.json();
+            console.log('Character data received:', characterData);
+
+            if (characterData.script) {
+                appendToConversation(characterData.script, 'character');
+                await playAudio(characterData.audio);
+            }
+
+            statusText.textContent = 'Ready for your response';
+            recordButton.disabled = false;
+
+        } catch (error) {
+            console.error('Error in loadScenario:', error);
+            statusText.textContent = `Error loading scenario: ${error.message}`;
+        } finally {
+            isLoadingScenario = false;
+            playButton.disabled = false;
+        }
+    }
+
+    async function processTranscription(text) {
+        try {
+            const response = await fetch('/voice_scenarios_chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    request_type: 'response',
+                    message: text
+                })
+            });
+
+            if (!response.ok) throw new Error('Processing failed');
+
+            const data = await response.json();
+
+            // Update character response
+            if (data.character_response) {
+                document.getElementById('character-response').innerHTML = data.character_response;
+            }
+
+            // Play audio response if available
+            if (data.audio) {
+                try {
+                    await playAudio(data.audio);
+                } catch (error) {
+                    statusText.textContent = 'Error playing audio. Continuing with text only.';
+                }
+            }
+
+            updateUI(data);
+
+        } catch (error) {
+            console.error('Error:', error);
+            statusText.textContent = 'Error processing response. Please try again.';
+        }
+    }
+
+    function updateUI(data) {
+        if (data.feedback) {
+            statusText.textContent = data.feedback;
         }
 
+        recordButton.disabled = false;
 
-        // Audio playback functions
-        async function playAudio(base64Audio) {
-            try {
-                // Stop any currently playing audio
-                if (currentAudio) {
-                    currentAudio.pause();
-                    currentAudio.currentTime = 0;
-                    if (currentAudio.src) {
-                        URL.revokeObjectURL(currentAudio.src);
-                    }
-                    currentAudio = null;
-                }
-
-                // Convert base64 to blob
-                const audioData = atob(base64Audio);
-                const arrayBuffer = new ArrayBuffer(audioData.length);
-                const view = new Uint8Array(arrayBuffer);
-                for (let i = 0; i < audioData.length; i++) {
-                    view[i] = audioData.charCodeAt(i);
-                }
-                const audioBlob = new Blob([arrayBuffer], { type: 'audio/mp3' });
-                const audioUrl = URL.createObjectURL(audioBlob);
-
-                // Create and play audio
-                const audio = new Audio(audioUrl);
-                currentAudio = audio;
-
-                // Set up promise for audio completion
-                currentAudioPromise = new Promise((resolve, reject) => {
-                    audio.onended = () => {
-                        URL.revokeObjectURL(audioUrl);
-                        currentAudio = null;
-                        currentAudioPromise = null;
-                        resolve();
-                    };
-                    audio.onerror = (error) => {
-                        URL.revokeObjectURL(audioUrl);
-                        currentAudio = null;
-                        currentAudioPromise = null;
-                        reject(error);
-                    };
-                });
-
-                // Play audio and wait for completion
-                await audio.play();
-                await currentAudioPromise;
-
-            } catch (error) {
-                console.error('Audio playback error:', error);
-                throw error;
-            }
+        // If this is the end of the scenario
+        if (data.next_scenario) {
+            setTimeout(() => {
+                statusText.textContent = 'Loading next scenario...';
+                loadScenario();
+            }, 3000); // Wait 3 seconds before loading next scenario
         }
 
+        // If all scenarios are completed
+        if (data.completed) {
+            statusText.textContent = 'All scenarios completed!';
+            recordButton.disabled = true;
+            document.getElementById('nextButton').disabled = true;
+        }
+    }
 
-        // Clean up function
-        function cleanupAudio() {
+
+    // Audio playback functions
+    async function playAudio(base64Audio) {
+        try {
+            // Stop any currently playing audio
             if (currentAudio) {
                 currentAudio.pause();
                 currentAudio.currentTime = 0;
@@ -938,9 +954,61 @@
                 }
                 currentAudio = null;
             }
-        }
 
-    </script>
+            // Convert base64 to blob
+            const audioData = atob(base64Audio);
+            const arrayBuffer = new ArrayBuffer(audioData.length);
+            const view = new Uint8Array(arrayBuffer);
+            for (let i = 0; i < audioData.length; i++) {
+                view[i] = audioData.charCodeAt(i);
+            }
+            const audioBlob = new Blob([arrayBuffer], { type: 'audio/mp3' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+
+            // Create and play audio
+            const audio = new Audio(audioUrl);
+            currentAudio = audio;
+
+            // Set up promise for audio completion
+            currentAudioPromise = new Promise((resolve, reject) => {
+                audio.onended = () => {
+                    URL.revokeObjectURL(audioUrl);
+                    currentAudio = null;
+                    currentAudioPromise = null;
+                    resolve();
+                };
+                audio.onerror = (error) => {
+                    URL.revokeObjectURL(audioUrl);
+                    currentAudio = null;
+                    currentAudioPromise = null;
+                    reject(error);
+                };
+            });
+
+            // Play audio and wait for completion
+            await audio.play();
+            await currentAudioPromise;
+
+        } catch (error) {
+            console.error('Audio playback error:', error);
+            throw error;
+        }
+    }
+
+
+    // Clean up function
+    function cleanupAudio() {
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+            if (currentAudio.src) {
+                URL.revokeObjectURL(currentAudio.src);
+            }
+            currentAudio = null;
+        }
+    }
+
+</script>
 </body>
 
 </html>
