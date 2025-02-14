@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 import base64
 import io
 import tempfile
+from flask import Blueprint, request, jsonify
+import speech_recognition as sr
+from io import BytesIO
 
 load_dotenv()
 
@@ -98,3 +101,33 @@ def test_voice_handler():
 
 if __name__ == "__main__":
     test_voice_handler()
+
+voicechat = Blueprint('voicechat', __name__)
+
+@voicechat.route('/process-audio', methods=['POST'])
+def process_audio():
+    if 'audio' not in request.files:
+        return jsonify({'error': 'No audio file provided'}), 400
+    
+    audio_file = request.files['audio']
+    audio_data = BytesIO(audio_file.read())
+    
+    # Initialize speech recognizer
+    recognizer = sr.Recognizer()
+    
+    try:
+        # Convert audio to text
+        with sr.AudioFile(audio_data) as source:
+            audio = recognizer.record(source)
+            text = recognizer.recognize_google(audio)
+            
+        return jsonify({
+            'success': True,
+            'text': text
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
