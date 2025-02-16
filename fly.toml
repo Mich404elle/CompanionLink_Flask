@@ -2,7 +2,11 @@ app = "cl-flask-dev"
 primary_region = "yyz"
 
 [build]
-  dockerfile = "Dockerfile"
+  builder = "paketobuildpacks/builder:base"
+
+[env]
+  PORT = "8080"
+  FLASK_APP = "app:app"
 
 [http_service]
   internal_port = 8080
