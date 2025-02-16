@@ -5,7 +5,6 @@ import base64
 import io
 import tempfile
 from flask import Blueprint, request, jsonify
-import speech_recognition as sr
 from io import BytesIO
 
 load_dotenv()
@@ -116,16 +115,30 @@ def process_audio():
     recognizer = sr.Recognizer()
     
     try:
-        # Convert audio to text
-        with sr.AudioFile(audio_data) as source:
-            audio = recognizer.record(source)
-            text = recognizer.recognize_google(audio)
+        # Create a temporary file to store the audio
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_audio:
+            audio_file.save(temp_audio.name)
             
-        return jsonify({
-            'success': True,
-            'text': text
-        })
-        
+            # Initialize VoiceChatHandler
+            handler = VoiceChatHandler()
+            
+            # Use OpenAI's Whisper API for transcription
+            text = handler.transcribe_audio(temp_audio.name)
+            
+            # Clean up the temporary file
+            os.unlink(temp_audio.name)
+            
+            if text:
+                return jsonify({
+                    'success': True,
+                    'text': text
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'Transcription failed'
+                }), 500
+            
     except Exception as e:
         return jsonify({
             'success': False,
