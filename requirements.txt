@@ -5,4 +5,4 @@ openai>=1.0.0,<2.0.0
 python-dotenv==1.0.1
 scikit_learn==1.5.2
 gunicorn==23.0.0
-speech_recognition
+speech_recognition==3.10.1
