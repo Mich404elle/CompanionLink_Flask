@@ -1,38 +1,26 @@
 app = "cl-flask-dev"
 primary_region = "yyz"
 
-[
-build
-]
+[build]
   dockerfile = "Dockerfile"
 
-[
-env
-]
+[env]
   PORT = "8080"
 
-[[
-services
-]]
+[[services]]
   protocol = "tcp"
   internal_port = 8080
 
-  [[
-services.ports
-]]
+  [[services.ports]]
     port = 80
     handlers = ["http"]
     force_https = true
 
-  [[
-services.ports
-]]
+  [[services.ports]]
     port = 443
     handlers = ["tls", "http"]
 
-  [[
-services.http_checks
-]]
+  [[services.http_checks]]
     interval = "10s"
     timeout = "2s"
     grace_period = "5s"
@@ -40,7 +28,5 @@ services.http_checks
     path = "/"
     protocol = "http"
 
-[
-deploy
-]
+[deploy]
   strategy = "immediate"
