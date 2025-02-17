@@ -659,7 +659,7 @@
                     sendAudioToServer(audioBlob);
                 });
 
-                mediaRecorder.start();
+                mediaRecorder.start(1000);
                 isRecording = true;
                 recordButton.classList.add('recording');
                 statusText.textContent = 'Recording... Release to send';
