@@ -478,6 +478,8 @@
         const narratorText = document.getElementById('narrator-text');
         const characterResponse = document.getElementById('character-response');
 
+        let audioPersistent = null;
+
         // Initialize event listeners
         document.addEventListener('keydown', handleKeyDown);
         document.addEventListener('keyup', handleKeyUp);
@@ -514,6 +516,7 @@
                 }
             }
         });
+
         document.getElementById('nextButton').addEventListener('click', async function () {
             try {
                 console.log('Requesting next scenario...');
@@ -558,8 +561,12 @@
                 // Force a small delay to ensure UI updates
                 await new Promise(resolve => setTimeout(resolve, 100));
 
-                // Load new scenario
-                await loadScenario();
+                // Enable the play button for the new scenario
+                const playButton = document.getElementById('playScenario');
+                playButton.disabled = false;
+
+                // Update status text
+                statusText.textContent = 'Ready to begin new scenario';
 
             } catch (error) {
                 console.error('Error advancing to next scenario:', error);
@@ -575,6 +582,8 @@
                     audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 }
                 await audioContext.resume();
+                audioPersistent = new Audio();
+                audioPersistent.preload = 'auto';
                 isAudioEnabled = true;
                 statusText.textContent = 'Audio enabled. Ready to begin.';
                 return audioContext;
@@ -929,6 +938,9 @@
                 statusText.textContent = 'Ready for your response';
                 recordButton.disabled = false;
 
+                // Keep the play button disabled after playing scenario
+                playButton.disabled = true;
+
             } catch (error) {
                 console.error('Error in loadScenario:', error);
                 if (error.message === 'Audio needs to be enabled') {
@@ -936,15 +948,13 @@
                 } else {
                     statusText.textContent = `Error loading scenario: ${error.message}`;
                 }
-                // Re-enable the play button if there was an error
+                // Only re-enable play button if there was an error in initial audio setup
                 const playButton = document.getElementById('playScenario');
-                playButton.disabled = false;
-            } finally {
-                isLoadingScenario = false;
-                if (isAudioEnabled) {
-                    const playButton = document.getElementById('playScenario');
+                if (!isAudioEnabled) {
                     playButton.disabled = false;
                 }
+            } finally {
+                isLoadingScenario = false;
             }
         }
 
@@ -1043,32 +1053,36 @@
                 audio.preload = 'auto';
                 audio.src = audioUrl;
 
+                audioPersistent.src = audioUrl;
+
                 // First attempt to play
                 try {
-                    await audio.play();
+                    // await audio.play();
+                    await audioPersistent.play();
                 } catch (playError) {
                     console.warn('Initial auto-play failed, attempting audio context unlock:', playError);
 
                     // Try to unlock audio context with user gesture
                     if (audioContext) {
                         await audioContext.resume();
-                        await audio.play();
+                        // await audio.play();
+                        await audioPersistent.play();
                     } else {
                         throw new Error('Audio context not initialized');
                     }
                 }
 
-                currentAudio = audio;
+                currentAudio = audioPersistent;
 
                 // Set up cleanup handlers
                 return new Promise((resolve, reject) => {
-                    audio.onended = () => {
+                    audioPersistent.onended = () => {
                         URL.revokeObjectURL(audioUrl);
                         currentAudio = null;
                         resolve();
                     };
 
-                    audio.onerror = (error) => {
+                    audioPersistent.onerror = (error) => {
                         console.error('Audio playback error:', error);
                         URL.revokeObjectURL(audioUrl);
                         currentAudio = null;
