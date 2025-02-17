@@ -248,21 +248,6 @@
             margin-bottom: var(--spacing-md);
         }
 
-        .progress-bar {
-            height: 4px;
-            background: var(--grid-color);
-            border-radius: var(--radius-sm);
-            overflow: hidden;
-            margin-top: var(--spacing-md);
-        }
-
-        .progress-fill {
-            height: 100%;
-            width: 0;
-            background: var(--accent-color);
-            transition: width 0.3s ease;
-        }
-
         .keyboard-hint {
             text-align: center;
             font-size: var(--font-size-xs);
@@ -474,7 +459,6 @@
 
         const recordButton = document.getElementById('recordButton');
         const statusText = document.getElementById('status-text');
-        const progressFill = document.querySelector('.progress-fill');
         const narratorText = document.getElementById('narrator-text');
         const characterResponse = document.getElementById('character-response');
 
@@ -679,7 +663,6 @@
                 isRecording = true;
                 recordButton.classList.add('recording');
                 statusText.textContent = 'Recording... Release to send';
-                progressFill.style.width = '100%';
 
             } catch (err) {
                 console.error('Error accessing microphone:', err);
@@ -694,7 +677,6 @@
                 isRecording = false;
                 recordButton.classList.remove('recording');
                 statusText.textContent = 'Processing...';
-                progressFill.style.width = '0';
             }
         }
 
@@ -812,12 +794,6 @@
             if (data.score !== undefined) {
                 const scorePercentage = (data.score * 100).toFixed(1);
                 console.log(`Score: ${scorePercentage}%`);
-
-                // Update progress bar if it exists
-                const progressBar = document.querySelector('.progress-fill');
-                if (progressBar) {
-                    progressBar.style.width = `${scorePercentage}%`;
-                }
             }
 
             // Enable recording button for next response
@@ -1047,11 +1023,6 @@
                 }
                 const audioBlob = new Blob([arrayBuffer], { type: 'audio/mp3' });
                 const audioUrl = URL.createObjectURL(audioBlob);
-
-                // Create and configure new audio element
-                const audio = new Audio();
-                audio.preload = 'auto';
-                audio.src = audioUrl;
 
                 audioPersistent.src = audioUrl;
 
